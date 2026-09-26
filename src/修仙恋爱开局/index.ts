@@ -328,7 +328,7 @@ async function 走流程(姓名: unknown, 灵根名称: unknown): Promise<void> 
     }
   }
 
-  酒馆页面().toastr.success('开局已就绪，愿君仙途顺遂', '修仙恋爱');
+  酒馆页面().toastr.success('开局已就绪，愿君仙途顺遂', '原来我的仙子母亲不止会哦齁，还会帮我找道侣');
 }
 
 let 流程进行中 = false;

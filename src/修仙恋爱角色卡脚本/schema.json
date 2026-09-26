@@ -44,19 +44,43 @@
         },
         "近期事务": {
           "default": {},
-          "type": "object",
-          "propertyNames": {
-            "type": "string",
-            "description": "事务名"
-          },
-          "additionalProperties": {
-            "type": "string",
-            "description": "事务描述"
-          }
+          "anyOf": [
+            {
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "description": "事务名"
+              },
+              "additionalProperties": {
+                "default": "",
+                "type": "string"
+              }
+            },
+            {
+              "type": "array",
+              "items": {}
+            }
+          ]
         },
         "_移动日志": {
           "default": "",
           "type": "string"
+        },
+        "_际遇日志": {
+          "default": "",
+          "type": "string"
+        },
+        "_待写事件": {
+          "default": {},
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "description": "姓名·档位"
+          },
+          "additionalProperties": {
+            "default": "",
+            "type": "string"
+          }
         }
       }
     },
@@ -112,78 +136,110 @@
         },
         "功法": {
           "default": {},
-          "type": "object",
-          "propertyNames": {
-            "type": "string",
-            "description": "功法名"
-          },
-          "additionalProperties": {
-            "type": "object",
-            "properties": {
-              "品阶": {
-                "default": "黄阶下品",
-                "type": "string"
+          "anyOf": [
+            {
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "description": "功法名"
               },
-              "倍率": {
-                "default": 1,
-                "type": "number"
-              },
-              "描述": {
-                "default": "",
-                "type": "string"
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "品阶": {
+                    "default": "黄阶下品",
+                    "type": "string"
+                  },
+                  "倍率": {
+                    "default": 1,
+                    "type": "number"
+                  },
+                  "描述": {
+                    "default": "",
+                    "type": "string"
+                  }
+                }
               }
+            },
+            {
+              "type": "array",
+              "items": {}
             }
-          }
+          ]
         },
         "双修": {
           "default": {},
-          "type": "object",
-          "propertyNames": {
-            "type": "string",
-            "description": "双修对象姓名"
-          },
-          "additionalProperties": {
-            "type": "object",
-            "properties": {
-              "描述": {
-                "default": "",
-                "type": "string"
+          "anyOf": [
+            {
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "description": "双修对象姓名"
+              },
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "描述": {
+                    "default": "",
+                    "type": "string"
+                  }
+                }
               }
+            },
+            {
+              "type": "array",
+              "items": {}
             }
-          }
+          ]
         },
         "状态": {
           "default": {},
-          "type": "object",
-          "propertyNames": {
-            "type": "string",
-            "description": "状态名"
-          },
-          "additionalProperties": {
-            "type": "string",
-            "description": "状态说明"
-          }
+          "anyOf": [
+            {
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "description": "状态名"
+              },
+              "additionalProperties": {
+                "default": "",
+                "type": "string"
+              }
+            },
+            {
+              "type": "array",
+              "items": {}
+            }
+          ]
         },
         "物品栏": {
           "default": {},
-          "type": "object",
-          "propertyNames": {
-            "type": "string",
-            "description": "物品名"
-          },
-          "additionalProperties": {
-            "type": "object",
-            "properties": {
-              "描述": {
-                "default": "",
-                "type": "string"
+          "anyOf": [
+            {
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "description": "物品名"
               },
-              "数量": {
-                "default": 1,
-                "type": "number"
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "描述": {
+                    "default": "",
+                    "type": "string"
+                  },
+                  "数量": {
+                    "default": 1,
+                    "type": "number"
+                  }
+                }
               }
+            },
+            {
+              "type": "array",
+              "items": {}
             }
-          }
+          ]
         },
         "_修行日志": {
           "default": "",
@@ -193,49 +249,65 @@
     },
     "人物": {
       "default": {},
-      "type": "object",
-      "propertyNames": {
-        "type": "string",
-        "description": "姓名"
-      },
-      "additionalProperties": {
-        "default": {},
-        "type": "object",
-        "properties": {
-          "身份": {
-            "default": "散修",
-            "type": "string"
+      "anyOf": [
+        {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "description": "姓名"
           },
-          "境界": {
-            "default": "炼气",
-            "type": "string"
-          },
-          "立绘": {
-            "default": "",
-            "type": "string"
-          },
-          "简介": {
-            "default": "",
-            "type": "string"
-          },
-          "好感度": {
-            "default": 0,
-            "type": "number"
-          },
-          "情愫": {
-            "default": "",
-            "type": "string"
-          },
-          "关系": {
-            "default": "",
-            "type": "string"
-          },
-          "心结": {
-            "default": "",
-            "type": "string"
+          "additionalProperties": {
+            "default": {},
+            "type": "object",
+            "properties": {
+              "身份": {
+                "default": "散修",
+                "type": "string"
+              },
+              "境界": {
+                "default": "炼气",
+                "type": "string"
+              },
+              "立绘": {
+                "default": "",
+                "type": "string"
+              },
+              "表情": {
+                "default": "默认",
+                "type": "string"
+              },
+              "简介": {
+                "default": "",
+                "type": "string"
+              },
+              "好感度": {
+                "default": 0,
+                "type": "number"
+              },
+              "情愫": {
+                "default": "",
+                "type": "string"
+              },
+              "关系": {
+                "default": "",
+                "type": "string"
+              },
+              "心结": {
+                "default": "",
+                "type": "string"
+              },
+              "_已达阶段": {
+                "default": "",
+                "type": "string"
+              }
+            }
           }
+        },
+        {
+          "type": "array",
+          "items": {}
         }
-      }
+      ]
     }
   }
 }

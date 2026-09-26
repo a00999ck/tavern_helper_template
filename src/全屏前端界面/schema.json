@@ -49,6 +49,19 @@
         },
         "_移动日志": {
           "$ref": "#/$defs/__schema0"
+        },
+        "_际遇日志": {
+          "$ref": "#/$defs/__schema0"
+        },
+        "_待写事件": {
+          "default": {},
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "string"
+          }
         }
       },
       "additionalProperties": {}
@@ -79,7 +92,11 @@
           "type": "number"
         },
         "灵根": {
-          "default": {},
+          "default": {
+            "名称": "",
+            "倍率": 1,
+            "描述": ""
+          },
           "type": "object",
           "properties": {
             "名称": {
@@ -211,6 +228,9 @@
           "立绘": {
             "$ref": "#/$defs/__schema0"
           },
+          "表情": {
+            "$ref": "#/$defs/__schema0"
+          },
           "简介": {
             "$ref": "#/$defs/__schema0"
           },
@@ -227,7 +247,16 @@
           "心结": {
             "$ref": "#/$defs/__schema0"
           },
+          "_已达阶段": {
+            "$ref": "#/$defs/__schema0"
+          },
           "$好感阶段": {
+            "type": "string"
+          },
+          "$尺度": {
+            "type": "number"
+          },
+          "$尺度名": {
             "type": "string"
           }
         },

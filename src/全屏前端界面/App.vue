@@ -30,7 +30,24 @@
         <section class="fullscreen-center">
           <!-- 上方留白: 场景画面 + 一行时间地点; 想放立绘、场景 CG 也往这里加 -->
           <div class="fullscreen-stage" :style="舞台样式">
-            <!-- 场面画: 世界.CG 填了文件名的才出现, 盖在背景之上、场景条之下 -->
+            <!--
+              说话人的立绘: 压在背景之上、CG 之下.
+              这一句点了谁的名就换谁; 没点名就沿用上一位, 谁都不在时留空.
+              表情不由界面猜 —— 读的是 AI 写在 人物.<姓名>.表情 里的那一档.
+            -->
+            <Transition name="fullscreen-chara">
+              <Portrait
+                v-if="舞台立绘"
+                :key="舞台立绘.立绘 + '·' + 舞台立绘.表情"
+                class="fullscreen-stage-chara"
+                plain
+                :src="舞台立绘.立绘"
+                :表情="舞台立绘.表情"
+                :名称="舞台立绘.姓名"
+              />
+            </Transition>
+
+            <!-- 场面画: 世界.CG 填了文件名的才出现, 盖在立绘与背景之上、场景条之下 -->
             <img
               v-if="CG显示"
               class="fullscreen-stage-cg"
@@ -51,7 +68,7 @@
           </div>
 
           <!-- 正文不再整段显示, 改由这个对话框一句一页地读: 左键下一句、右键上一句 -->
-          <DialogueBox :html="正文" :角色="角色" :生成中="生成中" />
+          <DialogueBox :html="正文" :角色="角色" :生成中="生成中" @换句="当前句 = $event" />
 
           <footer v-if="设置.显示输入框" class="fullscreen-footer">
             <Composer :disabled="生成中" />
@@ -60,7 +77,7 @@
 
         <!-- 右栏: 出场人物; 可以整栏收成一条竖签, 把地方让给正文 -->
         <div class="fullscreen-side">
-          <SidePanel v-if="!右栏收起" class="fullscreen-side-panel" title="周 遭">
+          <SidePanel v-if="!右栏收起" class="fullscreen-side-panel" title="好 感 角 色">
             <NpcPanel />
           </SidePanel>
 
@@ -72,7 +89,7 @@
             @click="右栏收起 = false"
           >
             <i class="fa-solid fa-angle-double-left"></i>
-            <span class="fullscreen-side-strip-text">周 遭</span>
+            <span class="fullscreen-side-strip-text">好 感 角 色</span>
           </button>
 
           <button v-else class="fullscreen-fold" type="button" title="收起右栏" @click="右栏收起 = true">
@@ -107,6 +124,7 @@ import DialogueBox from './components/DialogueBox.vue';
 import HeroPanel from './components/HeroPanel.vue';
 import MapPanel from './components/MapPanel.vue';
 import NpcPanel from './components/NpcPanel.vue';
+import Portrait from './components/Portrait.vue';
 import SidePanel from './components/SidePanel.vue';
 import { 素材链接 } from '../修仙恋爱角色卡脚本/schema';
 import { 空世界 } from './schema';
@@ -124,15 +142,56 @@ const 世界 = computed(() => 修仙.data.世界 ?? 空世界);
 const 地点 = computed(() => [世界.value.当前大区, 世界.value.当前地点].filter(Boolean).join(' · '));
 
 /**
- * 舞台背景: `世界.背景` 留空时自动用当前大区那张（`素材/背景/<大区>.png`）,
- * 所以丢进六张大区图就能一路跟着走; 两者都没有则退回样式里的远山.
+ * 舞台上的说话人立绘.
+ *
+ * **谁在说**由对话框报上来的当前这一句决定: 句子里点了谁的名就是谁;
+ * 没点名(旁白、动作)就沿用上一位 —— 这是 galgame 的老规矩, 免得旁白一来立绘就消失.
+ *
+ * **什么表情**不由界面猜. 界面只能做关键词匹配, 猜不准, 还会跟 AI 打架;
+ * 这里读的是 AI 写在 `人物.<姓名>.表情` 里的那一档 —— 它读的就是正文, 比界面准得多.
  */
-const 背景链接 = computed(() => 素材链接(世界.value.背景 || 世界.value.当前大区, '背景'));
+const 当前句 = ref('');
+const 上一位 = ref('');
+
+const 人物表 = computed(() => 修仙.data.人物 ?? {});
+
+/** 这一句里点了谁的名 */
+const 句中之人 = computed(() => {
+  const 文本 = 当前句.value.replace(/<[^>]*>/g, '');
+  if (文本.trim() === '') {
+    return '';
+  }
+  return _.find(_.keys(人物表.value), 姓名 => 文本.includes(姓名)) ?? '';
+});
+
+watch(句中之人, 姓名 => {
+  if (姓名 !== '') {
+    上一位.value = 姓名;
+  }
+});
+// 换楼层就重新认人, 免得上一楼的人一直站在台上
+watch(正文, () => {
+  上一位.value = '';
+});
+
+const 舞台立绘 = computed(() => {
+  const 人 = 人物表.value[句中之人.value || 上一位.value];
+  return 人?.立绘 ? { 姓名: 句中之人.value || 上一位.value, 立绘: 人.立绘, 表情: 人.表情 } : undefined;
+});
+
+/**
+ * 舞台背景: `世界.背景` 留空时自动用当前地点那张（`素材/背景/<小区域>.png`）。
+ *
+ * 只有小区域有背景图 —— 人永远站在某个具体地方, 「大区」只是个分类, 不是一处地点。
+ * 两层都空、或者图还没画（404）, 就退回样式里的远山。
+ */
+const 背景链接 = computed(() => 素材链接(世界.value.背景 || 世界.value.当前地点, '背景'));
 
 const 舞台样式 = computed(() =>
   背景链接.value
     ? {
-        backgroundImage: `linear-gradient(180deg, rgba(252, 250, 245, 0.3), rgba(252, 250, 245, 0.94)), url("${背景链接.value}")`,
+        // 末尾垫一层远山: 图 404 时那一层不画, 至少有远山, 不会是一片空白
+        backgroundImage: `linear-gradient(180deg, rgba(252, 250, 245, 0.3), rgba(252, 250, 245, 0.94)), url("${背景链接.value}"), var(--远山)`,
       }
     : undefined,
 );
@@ -555,13 +614,17 @@ onMounted(() => {
   background-position: center;
   /*
    * 没设背景图时, 留白处透出几重远山(几团压在底边上的淡墨).
-   * 世界.背景 一旦填了图片, 内联的 background-image 会把整条覆盖掉, 远山自然让位给 CG.
+   *
+   * 抽成变量, 是为了让内联的背景图能把它垫在最底下:
+   * 内联的 background-image 是「渐变压暗 → 场景图 → var(--远山)」,
+   * 于是图正常时远山被盖住, 图 404 时那一层不画、远山照样透出来 —— 不会变成一片空白.
    */
-  background-image:
+  --远山:
     radial-gradient(62% 58% at 14% 92%, rgba(35, 32, 27, 0.055), transparent 72%),
     radial-gradient(48% 46% at 38% 97%, rgba(35, 32, 27, 0.042), transparent 74%),
     radial-gradient(72% 62% at 72% 90%, rgba(35, 32, 27, 0.05), transparent 72%),
     radial-gradient(44% 40% at 95% 99%, rgba(35, 32, 27, 0.036), transparent 76%);
+  background-image: var(--远山);
   transition: background-image 0.4s ease;
 }
 
@@ -578,6 +641,32 @@ onMounted(() => {
   height: 100%;
   object-fit: contain;
   pointer-events: none;
+}
+
+/*
+ * 说话人的立绘: 贴底居中, 压在背景之上、CG 之下 (CG 在 DOM 里排在它后面).
+ * 3:4 竖版, 高度占舞台九成; `contain` 那条规矩写在 Portrait 的「素」模式里.
+ */
+.fullscreen-stage-chara {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  height: 94%;
+  aspect-ratio: 3 / 4;
+  transform: translateX(-50%);
+  pointer-events: none;
+  filter: drop-shadow(0 4px 16px rgba(35, 32, 27, 0.18));
+}
+
+/* 换人、换表情时淡入淡出, 免得硬切一下很跳 */
+.fullscreen-chara-enter-active,
+.fullscreen-chara-leave-active {
+  transition: opacity 0.22s ease;
+}
+
+.fullscreen-chara-enter-from,
+.fullscreen-chara-leave-to {
+  opacity: 0;
 }
 
 /* 场景信息条: 贴在留白区底部, 上面的空间留给背景图、立绘或 CG */

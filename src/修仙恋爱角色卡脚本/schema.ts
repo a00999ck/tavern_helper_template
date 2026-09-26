@@ -247,6 +247,54 @@ export function 查小区域(大区: string): string[] | undefined {
 
 // #endregion
 
+// #region 亲密尺度
+
+/** 尺度名, 下标即尺度等级 */
+export const 尺度名 = ['守礼', '亲近', '唇齿', '肌肤', '相合', '无间'];
+
+/** 各尺度的一句话说明, 供界面做悬浮提示 */
+export const 尺度说明 = [
+  '并肩而行、递物时指尖相触',
+  '牵手、依偎、靠肩、额头相抵',
+  '亲吻、贴着耳朵说话、隔着衣物的抚触',
+  '宽衣、亲吻与抚触裸露的肌肤；除合体之外都可以',
+  '双修',
+  '主动求欢，花样与场所都不再顾忌',
+];
+
+/**
+ * 每位女主角在各好感档位能接受到哪一级.
+ *
+ * 数组下标对应 `好感阶段顺序`（陌路 / 相识 / 情愫暗生 / 情根深种 / 生死相许）。
+ * 各人为什么是这个阶梯、她自己怎么表现，写在 `世界书/角色/<姓名>.yaml` 的「尺度」里；
+ * 这里只记数字，因为界面和变量都要用 —— 派生出来的 `$尺度` 会跟着 好感度 自动变，
+ * AI 直接读就行，不必自己查表。
+ */
+export const 尺度阶梯: Record<string, number[]> = {
+  苏挽烟: [1, 2, 3, 4, 5],
+  顾清漪: [0, 1, 2, 3, 4],
+  云见月: [0, 1, 2, 3, 4],
+  谢知微: [0, 1, 2, 3, 4],
+  姜雪辞: [0, 0, 1, 3, 4],
+  温若: [0, 2, 3, 4, 5],
+  白蘅: [0, 2, 3, 4, 5],
+  裴小满: [0, 1, 2, 3, 4],
+  楚青鸾: [0, 0, 1, 2, 4],
+  柳眠: [0, 2, 3, 4, 5],
+};
+
+/** 她此刻能接受到哪一级; 名单之外的人按 守礼 算 */
+export function 查尺度(姓名: string, 好感度: number): number {
+  const 阶梯 = 尺度阶梯[姓名];
+  if (!阶梯) {
+    return 0;
+  }
+  const 级 = 阶梯[阶段序(好感阶段(好感度))];
+  return _.isFinite(级) ? _.clamp(级, 0, 尺度名.length - 1) : 0;
+}
+
+// #endregion
+
 // #region 素材
 
 /**
@@ -313,8 +361,8 @@ export function 算修行(主角: 主角变量, 人物: 人物变量) {
   };
 }
 
-/** 好感度所对应的阶段 */
-const 好感阶段表 = ['陌路', '相识', '情愫暗生', '情根深种', '生死相许'];
+/** 好感度所对应的阶段, 由低到高 */
+export const 好感阶段顺序 = ['陌路', '相识', '情愫暗生', '情根深种', '生死相许'];
 
 /** 每个好感阶段在双修里给出的加成, 把所有双修对象的加成相加即得双修倍率 */
 export const 双修加成: Record<string, number> = {
@@ -328,131 +376,204 @@ export const 双修加成: Record<string, number> = {
 /** 好感度所对应的阶段, 供界面、双修加成与剧情参考 */
 export function 好感阶段(好感度: number) {
   if (好感度 < 20) {
-    return 好感阶段表[0]!;
+    return 好感阶段顺序[0]!;
   }
   if (好感度 < 40) {
-    return 好感阶段表[1]!;
+    return 好感阶段顺序[1]!;
   }
   if (好感度 < 60) {
-    return 好感阶段表[2]!;
+    return 好感阶段顺序[2]!;
   }
   if (好感度 < 80) {
-    return 好感阶段表[3]!;
+    return 好感阶段顺序[3]!;
   }
-  return 好感阶段表[4]!;
+  return 好感阶段顺序[4]!;
 }
 
+/** 某个阶段在顺序里的位置, 用来判断"往上跨了一档" */
+export function 阶段序(阶段: string): number {
+  const 位置 = 好感阶段顺序.indexOf(阶段);
+  return 位置 < 0 ? 0 : 位置;
+}
+
+// #region 宽容读法
+
+/**
+ * MVU 在 schema 解析失败时会把**整轮更新作废** —— 于是 AI 只要把某个字段写歪一次，
+ * 那一轮的所有变量更新就全丢了：剧情照走、数值不动，几轮下来就越积越乱。
+ *
+ * 所以下面每个字段都"来什么都能吞"：数字收到汉字、字典收到数组、字符串收到 null，
+ * 都转成一个合理的值，而不是抛错。`.catch()` 只兜底、不改变字段本该有的类型，
+ * 生成的 schema.json 照旧是 string / number / object，initvar 的补全与校验不受影响。
+ */
+
+/** 字符串: null / 数字 / 对象 一律收成字，收不了就给默认值 */
+const 文 = (默认 = '') => z.string().prefault(默认).catch(默认);
+
+/** 数字: 先转，NaN / Infinity 归默认值，彻底收不了也给默认值 */
+const 数 = (默认 = 0) =>
+  z.coerce
+    .number()
+    .prefault(默认)
+    .transform(v => (_.isFinite(v) ? v : 默认))
+    .catch(默认);
+
+/** 数字，并夹取到区间 */
+const 夹 = (最小: number, 最大: number, 默认 = 最小) => 数(默认).transform(v => _.clamp(v, 最小, 最大));
+
+/**
+ * 字典: 正常是 `{名: 值}`；AI 写成数组时也收 —— 字符串当键，其余给个占位名。
+ * 这样 `状态: ["轻伤"]` 会变成 `{"轻伤": ""}`，而不是把那轮更新整条丢掉。
+ */
+const 字典 = <V extends z.ZodTypeAny>(值: V, 键说明 = '') =>
+  z
+    .union([
+      z.record(z.string().describe(键说明), 值),
+      z.array(z.any()).transform(数组 => _.fromPairs(数组.map((v, i) => [_.isString(v) ? v : `条目${i + 1}`, v]))),
+    ])
+    .prefault({})
+    .catch({});
+
+/**
+ * 一块对象: 整个给了 null / 数组 / 字符串时，退回一份默认值，而不是让整轮更新作废。
+ *
+ * 传进来的 schema 自己已经带了 `.prefault({})`（管"没写这个字段"），这里只补 `.catch`
+ * （管"写了但写歪了"）—— 所以 `{}` 必须能解析出完整的一份默认值。
+ */
+const 块 = <T extends z.ZodTypeAny>(schema: T) => schema.catch(() => schema.parse({}));
+
+// #endregion
+
 /** 灵根: 决定修炼速度的天赋; 名称为空表示开局还没选 */
-const 灵根Schema = z
+const 灵根Schema = 块(z
   .object({
-    名称: z.string().prefault(''),
+    名称: 文(),
     /** 修炼速率倍率 */
-    倍率: z.coerce.number().prefault(1),
-    描述: z.string().prefault(''),
+    倍率: 数(1),
+    描述: 文(),
   })
-  .prefault({});
+  .prefault({}));
 
 /** 一门功法 */
 const 功法Schema = z.object({
-  品阶: z.string().prefault('黄阶下品'),
+  品阶: 文('黄阶下品'),
   /** 修炼速率倍率; 取所有功法里最高的一门作为主修 */
-  倍率: z.coerce.number().prefault(1),
-  描述: z.string().prefault(''),
+  倍率: 数(1),
+  描述: 文(),
 });
 
 /** 一位双修对象; 它给出的倍率由对方的好感度阶段决定, 这里不必再写倍率 */
 const 双修Schema = z.object({
-  描述: z.string().prefault(''),
+  描述: 文(),
 });
 
 /** 一件物品 */
 const 物品Schema = z.object({
-  描述: z.string().prefault(''),
-  数量: z.coerce.number().prefault(1),
+  描述: 文(),
+  数量: 数(1),
 });
 
 /** 一位出场人物 */
-const 人物Schema = z
+const 人物Schema = 块(z
   .object({
-    身份: z.string().prefault('散修'),
-    境界: z.string().prefault('炼气'),
-    立绘: z.string().prefault(''),
-    简介: z.string().prefault(''),
-    好感度: z.coerce.number().transform(value => _.clamp(value, 0, 100)).prefault(0),
+    身份: 文('散修'),
+    境界: 文('炼气'),
+    立绘: 文(),
+    /** 差分表情; '默认' 就用立绘那张, 其余会去找 `<立绘>·<表情>.png`, 找不到自动退回立绘 */
+    表情: 文('默认'),
+    简介: 文(),
+    好感度: 夹(0, 100, 0),
     /** 对方此刻最真实的心意, 第一人称, 不会出现在剧情里 */
-    情愫: z.string().prefault(''),
+    情愫: 文(),
     /** 他人眼中说得出口的关系, 如 '同门师姐' */
-    关系: z.string().prefault(''),
+    关系: 文(),
     /** 尚未化解的心事或心魔, 化解后清空 */
-    心结: z.string().prefault(''),
+    心结: 文(),
+    /**
+     * 只读: 她这辈子到过的**最高**好感档位, 由「世界推进」脚本维护.
+     *
+     * 用来把"好感跨档"做成一次性事件: 只有 好感度 的当前档位高过它时才算跨档,
+     * 触发后立刻抬到新档位 —— 于是好感掉下去再涨回来也不会重复放同一张 CG.
+     * 开局就写死在很高的档位上（比如大乘的母亲）, 她那些低档 CG 就永远不会触发.
+     * 空字符串表示"还没对齐过"（老存档、或者还没轮到她登场）。
+     */
+    _已达阶段: 文(),
   })
   .prefault({})
-  .transform(data => ({ ...data, $好感阶段: 好感阶段(data.好感度) }));
+  .transform(data => ({ ...data, $好感阶段: 好感阶段(data.好感度) })));
 
-const 主角Schema = z
+const 主角Schema = 块(z
   .object({
     // 姓名由玩家在开局流程里亲自填写, 因此初始为空
-    姓名: z.string().prefault(''),
-    道号: z.string().prefault(''),
-    身份: z.string().prefault('青冥山外门弟子'),
+    姓名: 文(),
+    道号: 文(),
+    身份: 文('青冥山外门弟子'),
     /** 只用境界名, 如 '炼气'、'金丹'; 由「世界推进」脚本提升, AI 不要改 */
-    境界: z.string().prefault('炼气'),
+    境界: 文('炼气'),
     /** 立绘图片链接, 留空时界面显示水墨占位 */
-    立绘: z.string().prefault(''),
-    简介: z.string().prefault(''),
+    立绘: 文(),
+    简介: 文(),
     /** 当前境界内已积累的修为; 由「世界推进」脚本增加, AI 不要改 */
-    修为: z.coerce.number().prefault(0),
+    修为: 数(0),
     灵根: 灵根Schema,
-    功法: z.record(z.string().describe('功法名'), 功法Schema).prefault({}),
-    双修: z.record(z.string().describe('双修对象姓名'), 双修Schema).prefault({}),
+    功法: 字典(功法Schema, '功法名'),
+    双修: 字典(双修Schema, '双修对象姓名'),
     /** 身上的临时状态: { [状态名]: 状态说明 } */
-    状态: z.record(z.string().describe('状态名'), z.string().describe('状态说明')).prefault({}),
-    物品栏: z
-      .record(z.string().describe('物品名'), 物品Schema)
-      .prefault({})
+    状态: 字典(文(), '状态名'),
+    物品栏: 字典(物品Schema, '物品名')
       .transform(data => _.pickBy(data, ({ 数量 }) => 数量 > 0)),
     /** 只读: 「世界推进」脚本上一轮在修行上做了什么 */
-    _修行日志: z.string().prefault(''),
+    _修行日志: 文(),
   })
-  .prefault({});
+  .prefault({}));
 
-const 世界Schema = z
+const 世界Schema = 块(z
   .object({
     /** 自大衍历元年正月初一起算的第几天, 由「世界推进」脚本推进 */
-    历日: z.coerce.number().transform(value => _.clamp(value, 0, 3650000)).prefault(0),
+    历日: 夹(0, 3650000, 0),
     /** 晨光 / 正午 / 暮色 / 深夜, 由 AI 按剧情写 */
-    时段: z.string().prefault('暮色'),
+    时段: 文('暮色'),
     /** 大区域, 必须是 `地图` 里的键 */
-    当前大区: z.string().prefault('青冥山脉'),
+    当前大区: 文('青冥山脉'),
     /** 小区域, 必须是所在大区下辖的地点 */
-    当前地点: z.string().prefault('听雨崖'),
-    天气: z.string().prefault('细雨'),
+    当前地点: 文('听雨崖'),
+    天气: 文('细雨'),
     /**
      * 场景背景图; 只填**文件名**, 留空时界面自动用当前大区那张.
      * 想在同区内换一张特写时才需要填，见 `素材链接`.
      */
-    背景: z.string().prefault(''),
+    背景: 文(),
     /** 当前场面画: 事件 CG 的文件名, 留空则不显示 */
-    CG: z.string().prefault(''),
+    CG: 文(),
     /** 这张 CG 的说明, 用作 alt 与占位文字 */
-    CG说明: z.string().prefault(''),
+    CG说明: 文(),
     /** AI 每轮必须报告的、**不含跨区赶路**的经过天数; 脚本读完会把它清零 */
-    经过天数: z.coerce.number().transform(value => _.clamp(value, 0, 365000)).prefault(0),
-    近期事务: z.record(z.string().describe('事务名'), z.string().describe('事务描述')).prefault({}),
+    经过天数: 夹(0, 365000, 0),
+    近期事务: 字典(文(), '事务名'),
     /** 只读: 「世界推进」脚本上一轮在移动上做了什么 */
-    _移动日志: z.string().prefault(''),
+    _移动日志: 文(),
+    /** 只读: 「世界推进」脚本上一轮记下的、有人好感跨档的际遇 */
+    _际遇日志: 文(),
+    /**
+     * 只读: 还欠着没写的跨档事件，`{ '姓名·档位': 姓名 }`。
+     *
+     * 脚本在有人好感跨档时往这里记一笔，之后**每轮都会催**，直到 AI 把 世界.CG
+     * 设成同名的「姓名·档位」为止 —— 那表示它已经开始写这一场了。
+     * 这样场面画就和正文对齐，不会出现"图在那儿、正文还没写"的一轮错位。
+     */
+    _待写事件: z.record(z.string().describe('姓名·档位'), 文()).prefault({}),
   })
   .prefault({})
-  .transform(data => ({ ...data, $当前时间: 格式化历日(data.历日, data.时段) }));
+  .transform(data => ({ ...data, $当前时间: 格式化历日(data.历日, data.时段) })));
 
-export const Schema = z
+export const Schema = 块(z
   .object({
     世界: 世界Schema,
 
     主角: 主角Schema,
 
     /** 出场人物: { [姓名]: { 身份, 境界, 立绘, 简介, 好感度, 情愫, 关系, 心结 } } */
-    人物: z.record(z.string().describe('姓名'), 人物Schema).prefault({}),
+    人物: 字典(人物Schema, '姓名'),
   })
   .transform(data => {
     // 双修倍率要看人物的好感度阶段, 因此主角的派生值统一在这一层算
@@ -464,8 +585,13 @@ export const Schema = z
         修为: _.clamp(data.主角.修为, 0, 派生.$修为上限),
         ...派生,
       },
+      // 尺度阶梯是按姓名记的, 只有在这一层才拿得到键
+      人物: _.mapValues(data.人物, (人, 姓名) => {
+        const 级 = 查尺度(姓名, 人.好感度);
+        return { ...人, $尺度: 级, $尺度名: 尺度名[级] ?? 尺度名[0]! };
+      }),
     };
-  });
+  }));
 
 export type Schema = z.output<typeof Schema>;
 

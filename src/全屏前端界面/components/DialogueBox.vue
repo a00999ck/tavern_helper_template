@@ -21,12 +21,16 @@
 import { 按句分页 } from '../断句';
 
 const props = defineProps<{ html: string; 角色?: ChatMessage['role']; 生成中?: boolean }>();
+const emit = defineEmits<{ 换句: [html: string] }>();
 
 /** 一句一页 */
 const 分页 = computed(() => 按句分页(props.html));
 const 页数 = computed(() => 分页.value.length);
 const 当前页 = ref(0);
 const 当前句 = computed(() => 分页.value[当前页.value] ?? '');
+
+// 把「现在这一句」报上去: 界面靠它认出说话的人, 好把她的立绘放上舞台
+watch(当前句, 句 => emit('换句', 句), { immediate: true });
 
 // 换了楼层、重新生成、切换 swipe 之后都回到第一句
 watch(分页, () => {
