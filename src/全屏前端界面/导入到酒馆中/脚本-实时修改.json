@@ -1,0 +1,7 @@
+{
+  "id": "3f2a91c4-7d05-4e18-9b62-0a4c8e15d7f3",
+  "name": "全屏前端界面-实时修改",
+  "content": "import 'http://localhost:5500/dist/全屏前端界面/index.js'",
+  "info": "开发用: 从本地 5500 端口取代码, 配合 pnpm watch 实现改完即见. 发布时用卡里那一条, 别用这个.",
+  "buttons": []
+}
