@@ -1,0 +1,241 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "世界": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "历日": {
+          "default": 0,
+          "type": "number"
+        },
+        "时段": {
+          "default": "暮色",
+          "type": "string"
+        },
+        "当前大区": {
+          "default": "青冥山脉",
+          "type": "string"
+        },
+        "当前地点": {
+          "default": "听雨崖",
+          "type": "string"
+        },
+        "天气": {
+          "default": "细雨",
+          "type": "string"
+        },
+        "背景": {
+          "default": "",
+          "type": "string"
+        },
+        "CG": {
+          "default": "",
+          "type": "string"
+        },
+        "CG说明": {
+          "default": "",
+          "type": "string"
+        },
+        "经过天数": {
+          "default": 0,
+          "type": "number"
+        },
+        "近期事务": {
+          "default": {},
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "description": "事务名"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "description": "事务描述"
+          }
+        },
+        "_移动日志": {
+          "default": "",
+          "type": "string"
+        }
+      }
+    },
+    "主角": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "姓名": {
+          "default": "",
+          "type": "string"
+        },
+        "道号": {
+          "default": "",
+          "type": "string"
+        },
+        "身份": {
+          "default": "青冥山外门弟子",
+          "type": "string"
+        },
+        "境界": {
+          "default": "炼气",
+          "type": "string"
+        },
+        "立绘": {
+          "default": "",
+          "type": "string"
+        },
+        "简介": {
+          "default": "",
+          "type": "string"
+        },
+        "修为": {
+          "default": 0,
+          "type": "number"
+        },
+        "灵根": {
+          "default": {},
+          "type": "object",
+          "properties": {
+            "名称": {
+              "default": "",
+              "type": "string"
+            },
+            "倍率": {
+              "default": 1,
+              "type": "number"
+            },
+            "描述": {
+              "default": "",
+              "type": "string"
+            }
+          }
+        },
+        "功法": {
+          "default": {},
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "description": "功法名"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "品阶": {
+                "default": "黄阶下品",
+                "type": "string"
+              },
+              "倍率": {
+                "default": 1,
+                "type": "number"
+              },
+              "描述": {
+                "default": "",
+                "type": "string"
+              }
+            }
+          }
+        },
+        "双修": {
+          "default": {},
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "description": "双修对象姓名"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "描述": {
+                "default": "",
+                "type": "string"
+              }
+            }
+          }
+        },
+        "状态": {
+          "default": {},
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "description": "状态名"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "description": "状态说明"
+          }
+        },
+        "物品栏": {
+          "default": {},
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "description": "物品名"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "描述": {
+                "default": "",
+                "type": "string"
+              },
+              "数量": {
+                "default": 1,
+                "type": "number"
+              }
+            }
+          }
+        },
+        "_修行日志": {
+          "default": "",
+          "type": "string"
+        }
+      }
+    },
+    "人物": {
+      "default": {},
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "description": "姓名"
+      },
+      "additionalProperties": {
+        "default": {},
+        "type": "object",
+        "properties": {
+          "身份": {
+            "default": "散修",
+            "type": "string"
+          },
+          "境界": {
+            "default": "炼气",
+            "type": "string"
+          },
+          "立绘": {
+            "default": "",
+            "type": "string"
+          },
+          "简介": {
+            "default": "",
+            "type": "string"
+          },
+          "好感度": {
+            "default": 0,
+            "type": "number"
+          },
+          "情愫": {
+            "default": "",
+            "type": "string"
+          },
+          "关系": {
+            "default": "",
+            "type": "string"
+          },
+          "心结": {
+            "default": "",
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

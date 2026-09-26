@@ -1,0 +1,68 @@
+/**
+ * 全屏界面共用的水墨装饰.
+ *
+ * 颜色和字体不放在这里, 而是定义在 App.vue 根节点上的 CSS 变量里 —— 自定义属性会随 DOM
+ * 继承下去, 子组件直接 `var()` 就能用; 这里只放需要反复复用的绘制规则.
+ */
+
+/**
+ * 版框: 往里收一圈细线, 四角再各压一道短线.
+ *
+ * 用的是 `::before`, 所以组件自己的 `::after` 仍然空着可用.
+ *
+ * @param 边距 内框离元素边缘的距离
+ * @param 角长 四角短线的长度
+ * @param 线色 内框线颜色
+ * @param 角色 四角短线颜色
+ */
+@mixin 版框($边距: 6px, $角长: 14px, $线色: var(--墨线淡), $角色: var(--朱砂线)) {
+  &::before {
+    content: '';
+    position: absolute;
+    inset: $边距;
+    border: 1px solid $线色;
+    pointer-events: none;
+
+    /* 四角各一横一竖, 拼成角线 */
+    background-image:
+      linear-gradient($角色, $角色), linear-gradient($角色, $角色), linear-gradient($角色, $角色),
+      linear-gradient($角色, $角色), linear-gradient($角色, $角色), linear-gradient($角色, $角色),
+      linear-gradient($角色, $角色), linear-gradient($角色, $角色);
+    background-size:
+      $角长 1px,
+      1px $角长,
+      $角长 1px,
+      1px $角长,
+      $角长 1px,
+      1px $角长,
+      $角长 1px,
+      1px $角长;
+    background-position:
+      left top,
+      left top,
+      right top,
+      right top,
+      left bottom,
+      left bottom,
+      right bottom,
+      right bottom;
+    background-repeat: no-repeat;
+  }
+}
+
+/**
+ * 两端淡出的双线, 用来当书眉线、版心线.
+ *
+ * 竖着排一深一浅两道细线, 再用遮罩把两端化开, 比生硬的 border-bottom 有笔意.
+ */
+@mixin 双线($深: rgba(35, 32, 27, 0.38), $浅: rgba(35, 32, 27, 0.14)) {
+  height: 3px;
+  background: linear-gradient(180deg, $深 0 1px, transparent 1px 2px, $浅 2px 3px);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+
+/** 纸上的柔和墨晕, 代替现代的硬投影 */
+@mixin 墨晕($模糊: 26px, $强度: 0.07) {
+  box-shadow: 0 ($模糊 * 0.38) $模糊 rgba(74, 58, 38, $强度);
+}

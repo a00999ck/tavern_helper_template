@@ -1,0 +1,245 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "世界": {
+      "type": "object",
+      "properties": {
+        "历日": {
+          "default": 0,
+          "type": "number"
+        },
+        "时段": {
+          "$ref": "#/$defs/__schema0"
+        },
+        "$当前时间": {
+          "type": "string"
+        },
+        "当前大区": {
+          "$ref": "#/$defs/__schema0"
+        },
+        "当前地点": {
+          "$ref": "#/$defs/__schema0"
+        },
+        "天气": {
+          "$ref": "#/$defs/__schema0"
+        },
+        "背景": {
+          "$ref": "#/$defs/__schema0"
+        },
+        "CG": {
+          "$ref": "#/$defs/__schema0"
+        },
+        "CG说明": {
+          "$ref": "#/$defs/__schema0"
+        },
+        "经过天数": {
+          "default": 0,
+          "type": "number"
+        },
+        "近期事务": {
+          "default": {},
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "_移动日志": {
+          "$ref": "#/$defs/__schema0"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "主角": {
+      "type": "object",
+      "properties": {
+        "姓名": {
+          "$ref": "#/$defs/__schema0"
+        },
+        "道号": {
+          "$ref": "#/$defs/__schema0"
+        },
+        "身份": {
+          "$ref": "#/$defs/__schema0"
+        },
+        "境界": {
+          "$ref": "#/$defs/__schema0"
+        },
+        "立绘": {
+          "$ref": "#/$defs/__schema0"
+        },
+        "简介": {
+          "$ref": "#/$defs/__schema0"
+        },
+        "修为": {
+          "default": 0,
+          "type": "number"
+        },
+        "灵根": {
+          "default": {},
+          "type": "object",
+          "properties": {
+            "名称": {
+              "$ref": "#/$defs/__schema0"
+            },
+            "倍率": {
+              "default": 1,
+              "type": "number"
+            },
+            "描述": {
+              "$ref": "#/$defs/__schema0"
+            }
+          },
+          "additionalProperties": {}
+        },
+        "功法": {
+          "default": {},
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "品阶": {
+                "$ref": "#/$defs/__schema0"
+              },
+              "倍率": {
+                "default": 1,
+                "type": "number"
+              },
+              "描述": {
+                "$ref": "#/$defs/__schema0"
+              }
+            },
+            "additionalProperties": {}
+          }
+        },
+        "双修": {
+          "default": {},
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "描述": {
+                "$ref": "#/$defs/__schema0"
+              }
+            },
+            "additionalProperties": {}
+          }
+        },
+        "状态": {
+          "default": {},
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "物品栏": {
+          "default": {},
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "描述": {
+                "$ref": "#/$defs/__schema0"
+              },
+              "数量": {
+                "default": 1,
+                "type": "number"
+              }
+            },
+            "additionalProperties": {}
+          }
+        },
+        "_修行日志": {
+          "$ref": "#/$defs/__schema0"
+        },
+        "$境界描述": {
+          "type": "string"
+        },
+        "$境界能力范围": {
+          "type": "string"
+        },
+        "$境界速率": {
+          "type": "number"
+        },
+        "$修为上限": {
+          "type": "number"
+        },
+        "$纯修年": {
+          "type": "number"
+        },
+        "$双修倍率": {
+          "type": "number"
+        },
+        "$修炼倍率": {
+          "type": "number"
+        },
+        "$修为增速": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "人物": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "身份": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "境界": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "立绘": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "简介": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "好感度": {
+            "default": 0,
+            "type": "number"
+          },
+          "情愫": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "关系": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "心结": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "$好感阶段": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": {}
+      }
+    }
+  },
+  "additionalProperties": {},
+  "$defs": {
+    "__schema0": {
+      "default": "",
+      "type": "string"
+    }
+  }
+}
